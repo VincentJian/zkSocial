@@ -180,6 +180,7 @@ public class NewsfeedVM {
 	// -------------------------------------------------------
 	
 	private boolean contactOpen = true;
+	private boolean hideContact = false;
 
 	/**
 	 * If true, the contact panel is opened
@@ -286,20 +287,9 @@ public class NewsfeedVM {
 					}
 				)
 			),
-			
+
 			new MenuGroupBean(
-				"INTERESTS",
-				new ListModelArray<MenuItemBean>(
-					new MenuItemBean[] {
-						new MenuItemBean(
-								"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAadEVYdFNvZnR3YXJlAFBhaW50Lk5FVCB2My41LjEwMPRyoQAAAq1JREFUWEftV1tTUlEU9jf02P9ppl/SQ+/1C3rQBLW8QaiAECqggiaVl7SxuAgeLoopIzZlTUaJISkIwtda29FhmA5wzpx6cNwz38zeZ6+19re+tS/Q1nbTahQwmMxLBGiEJcXi8sJnpbIm4Fg3BFQpUDwr4xIP2t1ohFrb+r7qEjQKqmTuehDwhxNQglqFrocCSmr+TzahEvnZ9r+V4GH3Iu7ed6iF/BXNG6cV2Xlx98KWKrCv7AVVT0CuBBzENb8Fh28DQ1NRGF3rGJ6OwvYigYlXSTEnB0UE5NTgIM75JIamJXDLZE+QTGfgXdmB0R2BbY6IvE4Km3poRoAzHabsk7sZ7B/kUKlWBZlvP/Iwe2JizuHbFIrUQhGBRiUYe7kpJDdNSugbDwvMvk0hf3KG8/MKFkN7GHSuw042bHuJpgQKxTKagYNw/S3eGAYmwugfXxP7wOCKoMcewvbHn0KNQHxfzNupJGzP0IyAfW5DZM3ta+YYvtVdPHUQEbcEvS2ED3sXJJy0IU2TUSKxIaCIgH+N3oK/gIOw/P2UXerTIX6flq6I8DcDqaG3BZDLF3F0XEC3LQjrTFz4tECgRCVoDA4yOhunoydR1iF0jLzDQjCNSqUq1OimxfvG1uB5s32hAp2IZ+514aMZAQtlZKCgFm8cXZRhpzUAz/KOWHBmJYXesTB09I1JxXYO8ITKwz6aETDTBtSNBsSCq9Jn6Kn/yLSKbK6A9H5WjDstfux9OcLhr1M8pj77aEZg2BOlrP2CADcryasj6ROp7+IYMrme5yHEKfvLMfs0JNA7YFxu5T8BB+EreGAigg6zH+0j74Xkg84IukaDQnqe481YO2afhgTokbhFuN0MHMQ0JalCMwIt/ZK+c8+yrPY5Zt+WFmli1JJSMkqy7027UuAPdropcSs2bu0AAAAASUVORK5CYII=",
-								"Subscriptions", 0)
-					}
-				)
-			),
-			
-			new MenuGroupBean(
-				null,
+				" ",
 				new ListModelArray<MenuItemBean>(
 					new MenuItemBean[] {
 						new MenuItemBean(
@@ -411,6 +401,8 @@ public class NewsfeedVM {
 		
 		if (NewsfeedVM.isWideScreen(orient))
 			contactOpen = !menuOpen;
+		
+		if (hideContact) contactOpen = false;
 	}
 	
 	@Command
@@ -423,23 +415,36 @@ public class NewsfeedVM {
 		
 		if (NewsfeedVM.isWideScreen(orient))
 			contactOpen = !menuOpen;
+		
+		if (hideContact) contactOpen = false;
 	}
 	
 	@Command
 	@NotifyChange({"contactOpen", "viewportWidth"})
-	public void updateOrientation(@BindingParam("orient") String orient) {
+	public void updateDeviceStatus(
+			@BindingParam("orient") String orient,
+			@BindingParam("width")  int    width) {
+		if (!mobile && width > 1366) {
+			viewportWidth = "1366px";
+		} else {
+			viewportWidth = width + "px";
+		}
+		
 		if (mobile && !this.orient.equals(orient)) {
 			this.orient = orient;
 			
 			Clients.showNotification(orient, Clients.NOTIFICATION_TYPE_WARNING, null, "middle_center", 2000);
 			
 			if ("portrait".equals(orient)) {
-				viewportWidth = "768px";
 				if (contactOpen) contactOpen = false;
 			} else {
-				viewportWidth = "1024px";
 				if (!menuOpen && !contactOpen) 	contactOpen = true;
 			}
+		}
+		
+		if (width < 700) {
+			hideContact = true;
+			contactOpen = false;
 		}
 	}
 	
